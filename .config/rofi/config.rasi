@@ -1,0 +1,116 @@
+configuration {
+    modi: "run,drun,window";
+    font: "JetBrainsMono Nerd Font 14";
+    show-icons: true;
+    icon-theme: "Papirus-dark";
+    terminal: "kitty"; /* Изменил на kitty под твой конфиг */
+    drun-display-format: "{icon} {name}";
+    location: 0;
+    disable-history: false;
+    hide-scrollbar: true;
+    display-drun: "   Apps ";
+    display-run: "   Run ";
+    display-window: "   Window";
+    sidebar-mode: true;
+}
+
+/* МОНОХРОМНАЯ ЦВЕТОВАЯ ПАЛИТРА */
+* {
+    bg-col: #000000;         /* Глубокий черный */
+    bg-col-light: #111111;   /* Темно-серый для элементов */
+    border-col: #ffffff;     /* Чистый белый для границ */
+    selected-col: #ffffff;   /* Белый фон для выбранного элемента */
+    fg-col: #ffffff;         /* Белый текст */
+    fg-col2: #000000;        /* Черный текст для контраста на белом фоне */
+    grey: #888888;           /* Серый для неактивных вкладок */
+
+    background-color: @bg-col;
+}
+
+element-text, element-icon , mode-switcher {
+    background-color: inherit;
+    text-color: inherit;
+}
+
+window {
+    height: 360px;
+    width: 700px;
+    border: 2px;             /* В стиль твоих границ в Hyprland */
+    border-color: @border-col;
+    background-color: @bg-col;
+    border-radius: 10px;     /* В стиль rounding в Hyprland */
+}
+
+mainbox {
+    background-color: @bg-col;
+    children: [inputbar, listview, mode-switcher];
+}
+
+inputbar {
+    children: [prompt, entry];
+    background-color: @bg-col;
+    padding: 10px;
+}
+
+prompt {
+    background-color: @border-col;
+    padding: 6px 12px;
+    text-color: @bg-col;
+    border-radius: 4px;
+    margin: 10px 0px 0px 10px;
+}
+
+entry {
+    padding: 10px;
+    margin: 10px 10px 0px 10px;
+    text-color: @fg-col;
+    background-color: @bg-col-light;
+    placeholder: "Search...";
+    border-radius: 4px;
+}
+
+listview {
+    border: 0px;
+    padding: 10px;
+    margin: 10px;
+    columns: 2;
+    lines: 5;
+    background-color: @bg-col;
+}
+
+element {
+    padding: 8px;
+    background-color: @bg-col;
+    text-color: @fg-col;
+    border-radius: 4px;
+}
+
+element-icon {
+    size: 28px;
+    margin: 0px 10px 0px 0px;
+}
+
+element selected {
+    background-color: @selected-col;
+    text-color: @fg-col2; /* Черный текст на белом фоне */
+}
+
+mode-switcher {
+    spacing: 0;
+    margin: 5px 10px 10px 10px;
+}
+
+button {
+    padding: 8px;
+    background-color: @bg-col-light;
+    text-color: @grey;
+    vertical-align: 0.5;
+    horizontal-align: 0.5;
+}
+
+button selected {
+    background-color: @bg-col;
+    text-color: @fg-col;
+    border: 1px 1px 0px 1px;
+    border-color: @border-col;
+}
