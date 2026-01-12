@@ -1,0 +1,84 @@
+//   _____     _             _____ _       _   _
+//  |_   _|___| |_ _ ___ ___|   __|_|___ _| |_| |_
+//    | | | . | '_| | | . |   |   | | . | . |   |_ -|
+//    |_| |___|_,_|_  |___|_|_|__|__|_  |___|_|_|___|
+//                |___|             |___|
+//
+//  Tokyo Night Theme Config
+{
+    "logo": {
+        "source": "/home/vraptor/.config/fastfetch/logos/current",
+        "padding": {
+            "top": 2,
+            "left": 2,
+            "right": 5
+        }
+    },
+    "display": {
+        "separator": " ❯ ",
+        "color": {
+            "keys": "magenta", // Пинк-неон
+            "title": "blue" // Глубокий синий
+        }
+    },
+    "modules": [
+        {
+            "type": "title",
+            "format": "vraptor",
+            "color": {
+                "user": "35", // Magenta
+                "at": "37", // White
+                "host": "34" // Blue
+            }
+        },
+        {
+            "type": "custom",
+            "format": " \u001b[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        },
+        {
+            "type": "os",
+            "key": "   sys",
+            "keyColor": "34" // Blue
+        },
+        {
+            "type": "kernel",
+            "key": "   ker",
+            "keyColor": "36" // Cyan
+        },
+        {
+            "type": "wm",
+            "key": "   win",
+            "keyColor": "35" // Magenta
+        },
+        {
+            "type": "shell",
+            "key": "   sh ",
+            "keyColor": "32" // Green (Teal)
+        },
+        {
+            "type": "terminal",
+            "key": "   trm",
+            "keyColor": "33" // Yellow
+        },
+        {
+            "type": "uptime",
+            "key": "   up ",
+            "keyColor": "34" // Blue
+        },
+        {
+            "type": "custom",
+            "format": " \u001b[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        },
+        "break",
+        {
+            "type": "colors",
+            "symbol": "rect", // Прямоугольники вместо кружков
+            "block": {
+                "range": [
+                    1,
+                    6
+                ]
+            }
+        }
+    ]
+}
