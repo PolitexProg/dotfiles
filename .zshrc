@@ -1,169 +1,146 @@
 # #######################################################################################
-# CLEAN & FAST ZSH CONFIG (ARCH LINUX / HYPRLAND) - Ver. 10/10
+# 🚀 ULTRA-ZSH CONFIG (ARCH / HYPRLAND / UV / DOTFILES)
 # #######################################################################################
 
-# 1. POWERLEVEL10K INSTANT PROMPT (Должен быть в самом верху)
-# Подавляем вывод только для этапа инициализации
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
-
+# 1. P10K INSTANT PROMPT
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # 2. ENVIRONMENT & PATH
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.pyenv/bin:$PATH"
-typeset -U path # Убирает дубликаты из PATH
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export ZSH="$HOME/.oh-my-zsh"
+export STARSHIP_CONFIG=~/.config/starship.toml
+typeset -U path
 ZSH_DISABLE_COMPFIX=true
 
-# 3. THEME SELECTION LOGIC
+# 3. THEME LOGIC
 THEME_LOCKFILE="$HOME/.cache/zsh_use_p10k"
+[[ -f "$THEME_LOCKFILE" ]] && ZSH_THEME="powerlevel10k/powerlevel10k" || ZSH_THEME="robbyrussell"
 
-if [[ -f "$THEME_LOCKFILE" ]]; then
-    ZSH_THEME="powerlevel10k/powerlevel10k"
-    # Авто-установка P10K если отсутствует
-    [[ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]] && \
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-else
-    ZSH_THEME="robbyrussell" # Фолбэк для Starship
-fi
-
-# 4. LAZY LOAD PYTHON (Pyenv) - Оптимизировано
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-
-_pyenv_init() {
-    eval "$(pyenv init - --path 2>/dev/null)"
-    eval "$(pyenv virtualenv-init - 2>/dev/null)"
-    unset -f _pyenv_init python pip python3
-}
-python() { _pyenv_init; command python "$@"; }
-python3() { _pyenv_init; command python3 "$@"; }
-pip() { _pyenv_init; command pip "$@"; }
-
-# 5. OH MY ZSH INIT
-export ZSH="$HOME/.oh-my-zsh"
-
-plugins=(
-    git git-auto-fetch zsh-autosuggestions zsh-syntax-highlighting
-    web-search zsh-history-substring-search extract
-)
-
-# Авто-установка плагинов
-for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
-    [[ ! -d $ZSH/custom/plugins/$plugin ]] && \
-        git clone https://github.com/zsh-users/$plugin $ZSH/custom/plugins/$plugin
+# 4. PLUGINS (Auto-install)
+plugins=(git git-auto-fetch zsh-autosuggestions zsh-syntax-highlighting web-search zsh-history-substring-search extract)
+for p in zsh-autosuggestions zsh-syntax-highlighting; do
+    [[ ! -d $ZSH/custom/plugins/$p ]] && git clone --depth=1 https://github.com/zsh-users/$p $ZSH/custom/plugins/$p
 done
-
 source $ZSH/oh-my-zsh.sh
 
-# 6. THEME INITIALIZATION (После OMZ)
-if [[ -f "$THEME_LOCKFILE" ]]; then
-    [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-else
-    export STARSHIP_CONFIG=~/.config/starship.toml
-    if command -v starship &> /dev/null; then
-        eval "$(starship init zsh)"
-    fi
-fi
-
-# 7. HISTORY & SYSTEM SETTINGS
-HISTSIZE=100000
-SAVEHIST=100000
-setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE IGNORE_EOF CORRECT
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+# 5. TOOL INIT
+[[ -f "$THEME_LOCKFILE" && -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+[[ ! -f "$THEME_LOCKFILE" ]] && command -v starship &>/dev/null && eval "$(starship init zsh)"
+command -v zoxide &>/dev/null && eval "$(zoxide init zsh --cmd cd)"
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh || { command -v fzf &>/dev/null && source <(fzf --zsh) }
+command -v uv &>/dev/null && eval "$(uv generate-shell-completion zsh)"
 
 # #######################################################################################
-# ALIASES & FUNCTIONS
+# ALIASES SECTION
 # #######################################################################################
 
-# --- SYSTEM ---
-alias update="$(command -v yay &>/dev/null && echo "yay" || echo "sudo pacman") -Syu"
-alias reload="zsh -n ~/.zshrc && source ~/.zshrc && echo 'ZSH config reloaded!'"
+# --- PACKAGE MANAGER ---
+PAC_HELPER=$(command -v yay || command -v paru || echo "sudo pacman")
+alias up="$PAC_HELPER -Syu"
+alias install="$PAC_HELPER -S"
+alias search="$PAC_HELPER -Ss"
+alias info="$PAC_HELPER -Qi"
+alias remove="sudo pacman -Rns"
+alias cleanup="sudo pacman -Rns \$(pacman -Qdtq)"
+alias cleanpkg="sudo paccache -rk2"
+alias bigpkg="expac -S '%-20n %m' | sort -rhk 2 | head -n 10"
+alias installed="pacman -Q"
+alias check="command -v checkupdates &>/dev/null && checkupdates || $PAC_HELPER -Qu"
+
+# --- SYSTEM & UTILS ---
 alias clr="clear"
+alias reload="exec zsh"
 alias path='echo -e ${PATH//:/\\n}'
-alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias zshconf="code ~/.zshrc"
-# Управление питанием (Power Management)
+alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+alias tofish='exec fish'
+alias music='cd ~/Music && uv run --project ~/Projects/PythonProjects/tui-player ~/Projects/PythonProjects/tui-player/main.py'
+# Power Management
 alias poweroff='sudo systemctl poweroff'
 alias reboot='sudo systemctl reboot'
 alias suspend='sudo systemctl suspend'
-alias hibernate='sudo systemctl hibernate'
+alias po='poweroff'; alias rb='reboot'; alias zz='suspend'
 alias drop-cache='sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches'
+alias listsys='systemctl list-units --type=service --state=running'
+alias failed='systemctl --failed'
 
-# Быстрые сокращения (еще короче)
-alias po='sudo systemctl poweroff'
-alias rb='sudo systemctl reboot'
-alias zz='sudo systemctl suspend'
+# --- HYPRLAND FULL SUITE ---
+alias hypr='code ~/.config/hypr/hyprland.conf'
+alias hyprconf='cd ~/.config/hypr && nvim'
+alias hyprfiles='cd ~/.config/hypr'
+alias hyprreload='hyprctl reload'
+alias hypr-display='hyprctl monitors'
+alias hypr-devices='hyprctl devices'
+alias hypr-binds='hyprctl binds'
+alias hypr-activewindow='hyprctl activewindow'
+alias hypr-log='journalctl -fu hyprland -b 0 | grep -E "(ERROR|WARN|hyprland)"'
+alias hypr-vram='command -v radeontop &>/dev/null && radeontop -d - || nvidia-smi'
+alias waybar-conf='nvim ~/.config/waybar/config'
+alias waybar-style='nvim ~/.config/waybar/style.css'
 
-# Проверка состояния (полезно для Arch)
-alias listsys='systemctl list-units --type=service --state=running' # список запущенных сервисов
-alias failed='systemctl --failed' # проверка упавших сервисов
-# --- RM IMPROVED (Safe Delete) ---
-unalias rm 2>/dev/null
+# --- MODERN CLI TOOLS ---
+if command -v eza &>/dev/null; then
+    alias ls="eza --icons --group-directories-first"
+    alias ll="eza -la --icons --group-directories-first --git"
+    alias lt="eza --tree --icons --level=2"
+fi
+command -v bat &>/dev/null && alias cat="bat --theme=Nord --style=plain"
+command -v rg &>/dev/null && alias grep="rg --color=auto"
+command -v ncdu &>/dev/null && alias du="ncdu --color dark"
+
+# --- RIP (Safe Delete) MANAGEMENT ---
+if command -v rip &>/dev/null; then
+    alias rip-list="rip -s"       # Показать файлы в текущей директории (seance)
+    alias rip-undo="rip -u"       # Восстановить последний
+    alias rip-empty="rip -d"      # Полная очистка кладбища (decompose)
+fi
+
+# --- DEV, GIT & UV ---
+alias venv="uv venv"
+alias activate="source .venv/bin/activate"
+alias python="uv run python"
+alias pip="uv pip"
+alias gst="git status -sb"
+alias gl="git log --oneline --graph --all"
+alias vikunja-start='cd ~/vikunja && docker-compose up -d'
+alias vikunja-stop='cd ~/vikunja && docker-compose down'
+
+# #######################################################################################
+# FUNCTIONS
+# #######################################################################################
+
+# Безопасный RM
 rm() {
-    [[ $# -eq 0 ]] && { echo "No files specified."; return 1 }
-
-    if command -v rip &> /dev/null; then
+    if command -v rip &>/dev/null; then
         echo "Files to delete: $*"
-        # -q значит "прочитать 1 символ", не нужен Enter
-        if read -q "choice?Send to RIP graveyard? [y/N]: "; then
-            echo "\nSent to graveyard."
-            command rip "$@"
-        else
-            echo "\nCancelled."
-        fi
+        read -q "choice?Send to RIP graveyard? [y/N]: " && { echo "\nSent."; command rip "$@"; } || echo "\nCancelled."
     else
         command rm -i "$@"
     fi
 }
 
-# --- MODERN TOOLS ---
-if command -v eza &> /dev/null; then
-    alias ls="eza --icons --group-directories-first --time-style=long-iso"
-    alias ll="eza -la --icons --group-directories-first --git"
-    alias lt="eza --tree --icons --level=2"
-fi
-
-if command -v bat &> /dev/null; then
-    alias cat="bat --theme=Nord --style=plain"
-fi
-
-alias grep="rg --color=auto"
-alias du="ncdu --color dark"
-
-# --- DEV & GIT ---
-alias venv="python -m venv .venv && source .venv/bin/activate && pip install -U pip"
-alias activate="[[ -f .venv/bin/activate ]] && source .venv/bin/activate"
-alias gst="git status -sb"
-alias gl="git log --oneline --graph --all"
-
-# --- FUNCTIONS ---
+# Тема
 toggletheme() {
     [[ -f "$THEME_LOCKFILE" ]] && rm "$THEME_LOCKFILE" || touch "$THEME_LOCKFILE"
-    echo "Theme toggled. Restarting shell..."
     exec zsh
 }
 
-function info() {
+# Твой скрипт (переименован во избежание конфликта с pacman info)
+sysinfo() {
     local PRJ="$HOME/SystemSctipts/1"
-    [[ -d "$PRJ/venv" ]] && { source "$PRJ/venv/bin/activate"; python3 "$PRJ/main.py" "$@"; deactivate } || echo "Venv not found."
+    [[ -d "$PRJ/.venv" ]] && "$PRJ/.venv/bin/python" "$PRJ/main.py" "$@" || echo "Venv not found."
 }
 
 # #######################################################################################
-# INITIALIZATION
+# FINAL SETUP
 # #######################################################################################
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE CORRECT
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
 
-# Zoxide & FZF
-command -v zoxide &> /dev/null && eval "$(zoxide init zsh --cmd cd)"
-[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh || { command -v fzf &>/dev/null && source <(fzf --zsh) }
-
-# Fastfetch (Fix Instant Prompt)
-if command -v fastfetch &> /dev/null; then
-    # Запускаем только если это НЕ фоновый процесс p10k
-    if [[ -z "$P9K_TTY" || "$P9K_TTY" == "old" ]]; then
-        fastfetch
-    fi
-fi
-
-. "$HOME/.local/share/../bin/env"
+fastfetch
+export PATH=$PATH:~/.npm-global/bin
